@@ -76,15 +76,16 @@ class Enrollment(models.Model):
     rating = models.FloatField(default=5.0)
 
 
+# Question model: text, grade (points) and a method to check the answers
 class Question(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    question_text = models.CharField(max_length=200)
-    grade = models.IntegerField(default=50)
+    question_text = models.TextField()
+    grade = models.IntegerField(default=1)
 
     def __str__(self):
         return "Question: " + self.question_text
 
-    # Returns True if all the correct choices were selected (and no wrong ones)
+    # Returns True only if all correct choices (and no wrong ones) were selected
     def is_get_score(self, selected_ids):
         all_answers = self.choice_set.filter(is_correct=True).count()
         selected_correct = self.choice_set.filter(
@@ -93,18 +94,20 @@ class Question(models.Model):
         return all_answers == selected_correct and selected_total == selected_correct
 
 
+# Choice model: one possible answer to a question
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice_text = models.CharField(max_length=200)
+    choice_text = models.CharField(max_length=500)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
         return "Choice: " + self.choice_text
 
 
+# Submission model: links an enrollment to the choices a learner selected
 class Submission(models.Model):
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
     choices = models.ManyToManyField(Choice)
 
     def __str__(self):
-        return "Submission: " + str(self.id)
+        return "Submission: " + str(self.enrollment.id)
