@@ -18,6 +18,7 @@ class CourseDetailView(generic.DetailView):
     template_name = 'onlinecourse/course_details_bootstrap.html'
 
 
+# Collect the ids of the choices the learner ticked in the exam form
 def extract_answers(request):
     submitted_answers = []
     for key in request.POST:
@@ -26,6 +27,7 @@ def extract_answers(request):
     return submitted_answers
 
 
+# Save the learner's submission, then redirect to the result page
 def submit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     enrollment = Enrollment.objects.get(user=request.user, course=course)
@@ -36,6 +38,7 @@ def submit(request, course_id):
                 args=(course.id, submission.id)))
 
 
+# Calculate the score and show the exam result
 def show_exam_result(request, course_id, submission_id):
     course = get_object_or_404(Course, pk=course_id)
     submission = get_object_or_404(Submission, pk=submission_id)
@@ -48,11 +51,10 @@ def show_exam_result(request, course_id, submission_id):
         if question.is_get_score(selected_ids):
             total_score += question.grade
 
-    grade = int(total_score / max_score * 100) if max_score else 0
-
     context = {
         'course': course,
         'selected_ids': selected_ids,
-        'grade': grade,
+        'grade': total_score,
+        'possible': max_score,
     }
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
